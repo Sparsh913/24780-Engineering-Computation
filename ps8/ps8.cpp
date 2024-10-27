@@ -22,11 +22,16 @@ public:
 
     void Make(const YsRawPngDecoder &png) {
         Clear();  // Reset histogram data
-        int pixelCount = png.wid * png.hei * 4;
+        int pixelCount = png.wid * png.hei;
         for (int i = 0; i < pixelCount; ++i) {
-            hist[png.rgba[i]]++;  // Count pixel intensities
-        }
-        histogramCreated = true;
+            auto r = png.rgba[i * 4];
+            auto g = png.rgba[i * 4 + 1];
+            auto b = png.rgba[i * 4 + 2];
+            hist[r]++;
+            hist[g]++;
+            hist[b]++;
+    }
+        histogramCreated = true;  // Set flag to true after histogram is created
     }
 
     void Print() const {
@@ -44,7 +49,7 @@ public:
         }
     }
 
-    void Draw() const {
+    void Draw(const YsRawPngDecoder &png) const {
         if (!histogramCreated) {
             std::cerr << "Error: Histogram not created. Call Make() first." << std::endl;
             return;
@@ -57,14 +62,19 @@ public:
             }
         }
 
+        if (maxVal == 0) {
+            maxVal = 1;  // Prevent division by zero
+        }
+
         float scale = 80.0f / maxVal;  // Scale so the highest bar is 80 pixels
 
         glColor3f(1.0f, 0.0f, 0.0f);  // Set color for histogram bars
         for (int i = 0; i < 256; ++i) {
             int barHeight = static_cast<int>(hist[i] * scale);  // Scale bar height
+            // printf("Bar %d: Height %d\n", i, barHeight);  // Debugging output
             glBegin(GL_LINES);
-            glVertex2i(i, 599);  // Bottom of the window
-            glVertex2i(i, 599 - barHeight);  // Draw up based on bar height
+            glVertex2i(i, png.hei);  // Bottom of the window
+            glVertex2i(i, png.hei - barHeight);  // Draw up based on bar height
             glEnd();
         }
     }
@@ -83,17 +93,17 @@ int main(int argc, char *argv[]) {
     }
     png.Flip();
 
-    FsOpenWindow(0, 0, png.wid, png.hei + 100, 1);  // Extra space for histogram display
+    FsOpenWindow(0, 0, png.wid, png.hei, 1);  // Extra space for histogram display
 
     Histogram histogram;
     histogram.Make(png);  // Generate histogram based on the PNG image
+    histogram.Print();  // Print histogram to console
 
-    bool terminate = false;
-    while (!terminate) {
+    while (true) {
         FsPollDevice();
 
         if (FSKEY_ESC == FsInkey()) {
-            terminate = true;
+            break;
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -101,7 +111,7 @@ int main(int argc, char *argv[]) {
         glRasterPos2i(0, png.hei);
         glDrawPixels(png.wid, png.hei, GL_RGBA, GL_UNSIGNED_BYTE, png.rgba);
 
-        histogram.Draw();  // Draw histogram over the image
+        histogram.Draw(png);  // Draw histogram over the image
 
         FsSwapBuffers();
         FsSleep(10);
