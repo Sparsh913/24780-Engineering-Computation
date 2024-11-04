@@ -68,7 +68,7 @@ public:
 
         float scale = 80.0f / maxVal;  // Scale so the highest bar is 80 pixels
 
-        glColor3f(1.0f, 0.0f, 0.0f);  // Set color for histogram bars
+        glColor3f(1.0f, 1.0f, 1.0f);  // Set color for histogram bars
         for (int i = 0; i < 256; ++i) {
             int barHeight = static_cast<int>(hist[i] * scale);  // Scale bar height
             // printf("Bar %d: Height %d\n", i, barHeight);  // Debugging output
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     }
     png.Flip();
 
-    FsOpenWindow(0, 0, png.wid, png.hei, 1);  // Extra space for histogram display
+    FsOpenWindow(0, 0, png.wid, png.hei, 1);  // No extra space for histogram
 
     Histogram histogram;
     histogram.Make(png);  // Generate histogram based on the PNG image
@@ -108,10 +108,12 @@ int main(int argc, char *argv[]) {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glRasterPos2i(0, png.hei);
+        // Draw the image
+        glRasterPos2i(0, png.hei - 1);
         glDrawPixels(png.wid, png.hei, GL_RGBA, GL_UNSIGNED_BYTE, png.rgba);
 
-        histogram.Draw(png);  // Draw histogram over the image
+        // Draw the histogram overlaid on the bottom of the image
+        histogram.Draw(png);  
 
         FsSwapBuffers();
         FsSleep(10);
