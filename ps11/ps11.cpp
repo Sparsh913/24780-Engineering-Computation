@@ -12,11 +12,12 @@ const float SHAFT3_LENGTH = 2.0f;  // Length of Shaft 3 (in meters)
 const float P3_X = 4.0f;           // Position of P3 in meters
 const float P3_Y = 0.0f;           // Position of P3 in meters
 const float ROTATION_INCREMENT = 0.01f;  // Rotation angle increment (in radians)
+const float SG_PI = 3.14159265358979323846;
 
 void DrawCircle(int x, int y, int radius) {
     glBegin(GL_LINE_LOOP);
     for (int i = 0; i < 100; ++i) {
-        double angle = 2.0 * M_PI * i / 100.0;
+        double angle = 2.0 * SG_PI * i / 100.0;
         int px = x + (int)(radius * cos(angle));
         int py = y + (int)(radius * sin(angle));
         glVertex2i(px, py);
@@ -133,8 +134,8 @@ int main() {
 
         // Increment angle for next frame
         angle += ROTATION_INCREMENT;
-        if (angle >= 2.0 * M_PI) {
-            angle -= 2.0 * M_PI;  // Keep angle within 0 to 2π
+        if (angle >= 2.0 * SG_PI) {
+            angle -= 2.0 * SG_PI;  // Keep angle within 0 to 2π
         }
     }
 
